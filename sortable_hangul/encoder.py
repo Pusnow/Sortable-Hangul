@@ -1,6 +1,8 @@
 from unicodedata import normalize
 
-from typing import Generator, Tuple
+from typing import Generator
+
+from .types import CodeBlock, CodeClass, CodeType
 
 from .constants import (
     BANGJEOM, C_JA, C_JA_2_JAMO, C_SY, C_SY_2_JA, C_SY_2_MO, C_SY_EXTEND,
@@ -39,8 +41,7 @@ def encode_block_1(final: int, bangjeom: int, type_: int) -> str:
     return chr(code_point)
 
 
-def unicode_decode(unicode_chr: str
-                   ) -> Generator[Tuple[CodeClass, int, CodeType], None, None]:
+def unicode_decode(unicode_chr: str) -> Generator[CodeBlock, None, None]:
 
     unicode_point = ord(unicode_chr)
     code_type = CodeType.NORMAL
@@ -98,12 +99,27 @@ def unicode_decode(unicode_chr: str
         elif BANGJEOM[0] <= code_point < BANGJEOM[1]:
             yield (CodeClass.BANGJEOM, code_point - BANGJEOM[0] + 1, code_type)
         else:
-            yield None
+            yield code_point
+
+
+def unicode_text_decode(unicode_text: str) -> Generator[CodeBlock, None, None]:
+    for unicode_chr in unicode_text:
+        for result in unicode_decode(unicode_chr):
+            yield result
 
 
 def encode(unicode_text: str) -> str:
     unicode_text = normalize("NFD", unicode_text)
+    prev_class = None
+    prev_point = None
+    prev_type = None
+    encoded_text = ""
+    for code_block in unicode_text_decode(unicode_text):
+        if type(code_block) is int:
+            encoded_text += chr(code_block)
+        else:
+            code_class, code_point, code_type = code_block
 
-    for unicode_chr in unicode_text:
-        for code_class, code_point, code_type in unicode_decode(unicode_chr):
-            print(code_class, code_point, code_type)
+            prev_class = code_class
+            prev_point = code_point
+            prev_type = code_type
