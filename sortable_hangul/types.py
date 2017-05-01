@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
+from typing import TypeVar, Tuple
 
 
 class CodeClass(Enum):
@@ -15,3 +16,6 @@ class CodeType(Enum):
     H = 3
     C = 4
     P = 5
+
+
+CodeBlock = TypeVar('CodeBlock', Tuple[CodeClass, int, CodeType], int)
