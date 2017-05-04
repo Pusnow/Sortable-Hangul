@@ -10,7 +10,6 @@ from .constants import (
     INDEX1100, INDEXA960, INDEXD7B0, INDEXD7CB, JAMO_EXTEND_A,
     JAMO_EXTEND_B_FINAL, JAMO_EXTEND_B_PEAK, JAMO_FINAL, JAMO_INITIAL,
     JAMO_PEAK, P_JA, P_JA_2_JAMO, P_SY, P_SY_2_JA, P_SY_2_MO)
-from .types import CodeClass, CodeType
 
 
 def encode_block_0(initial: int, peak: int) -> str:
@@ -108,18 +107,71 @@ def unicode_text_decode(unicode_text: str) -> Generator[CodeBlock, None, None]:
             yield result
 
 
+def encode_prev(prev_class: CodeClass, prev_point: int,
+                prev_type: CodeType) -> str:
+
+    if not prev_class:
+        return ""
+
+    if prev_class is CodeClass.INITIAL:
+        return encode_block_0(prev_point, 0) + encode_block_1(0, 0, prev_type)
+    elif prev_class is CodeClass.PEAK:
+        return encode_block_1(0, 0, prev_type)
+    elif prev_class is CodeClass.FINAL:
+        return encode_block_1(prev_point, 0, prev_type)
+    elif prev_class is CodeClass.BANGJEOM:
+        return ""
+    else:
+        return ""
+
+
 def encode(unicode_text: str) -> str:
     unicode_text = normalize("NFD", unicode_text)
-    prev_class = None
-    prev_point = None
-    prev_type = None
+    prev_class = CodeClass.NONE
+    prev_point = 0
+    prev_type = CodeType.NORMAL
     encoded_text = ""
     for code_block in unicode_text_decode(unicode_text):
+
         if type(code_block) is int:
             encoded_text += chr(code_block)
+            prev_class = CodeClass.NONE
+            prev_point = 0
+            prev_type = CodeType.NORMAL
         else:
             code_class, code_point, code_type = code_block
+
+            if code_class is CodeClass.INITIAL:
+                encoded_text += encode_prev(prev_class, prev_point, prev_type)
+            elif code_class is CodeClass.PEAK:
+                if prev_class is CodeClass.INITIAL:
+                    encoded_text += encode_block_0(prev_point, code_point)
+                else:
+                    encoded_text += encode_prev(prev_class, prev_point,
+                                                prev_type)
+                    encoded_text += encode_block_0(0, code_point)
+            elif code_class is CodeClass.FINAL:
+                if prev_class is CodeClass.PEAK:
+                    pass
+                elif prev_class is CodeClass.INITIAL:
+                    encoded_text += encode_block_0(prev_point, 0)
+                else:
+                    encoded_text += encode_prev(prev_class, prev_point,
+                                                prev_type)
+            elif code_class is CodeClass.BANGJEOM:
+                if prev_class is CodeClass.FINAL:
+                    encoded_text += encode_block_1(prev_point, code_point,
+                                                   prev_type)
+                elif prev_class is CodeClass.PEAK:
+                    encoded_text += encode_block_1(0, code_point, prev_type)
+                elif prev_class is CodeClass.INITIAL:
+                    encoded_text += encode_block_0(prev_point, 0)
+                    encoded_text += encode_block_1(0, code_point, prev_type)
+                else:
+                    encoded_text += encode_prev(prev_class, prev_point,
+                                                prev_type)
 
             prev_class = code_class
             prev_point = code_point
             prev_type = code_type
+    return encoded_text
