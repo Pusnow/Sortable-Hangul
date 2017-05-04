@@ -110,9 +110,6 @@ def unicode_text_decode(unicode_text: str) -> Generator[CodeBlock, None, None]:
 def encode_prev(prev_class: CodeClass, prev_point: int,
                 prev_type: CodeType) -> str:
 
-    if not prev_class:
-        return ""
-
     if prev_class is CodeClass.INITIAL:
         return encode_block_0(prev_point, 0) + encode_block_1(0, 0, prev_type)
     elif prev_class is CodeClass.PEAK:
