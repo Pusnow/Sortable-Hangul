@@ -134,6 +134,7 @@ def encode(unicode_text: str) -> str:
     for code_block in unicode_text_decode(unicode_text):
 
         if type(code_block) is int:
+            encoded_text += encode_prev(prev_class, prev_point, prev_type)
             encoded_text += chr(code_block)
             prev_class = CodeClass.NONE
             prev_point = 0
