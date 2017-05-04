@@ -174,4 +174,6 @@ def encode(unicode_text: str) -> str:
             prev_class = code_class
             prev_point = code_point
             prev_type = code_type
+    if prev_class is not CodeClass.NONE:
+        encoded_text += encode_prev(prev_class, prev_point, prev_type)
     return encoded_text
