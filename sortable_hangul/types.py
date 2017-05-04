@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import TypeVar, Tuple
 
 
 class CodeClass(Enum):
-    INITIAL = 1
-    PEAK = 2
-    FINAL = 3
-    BANGJUM = 4
+    INITIAL = 0
+    PEAK = 1
+    FINAL = 2
+    BANGJEOM = 3
+    NONE = 4
 
 
-class CodeType(Enum):
-    NORMAL = 1
+class CodeType(IntEnum):
+    NORMAL = 0
+    H = 1
     CP = 2
-    H = 3
+    P = 3
     C = 4
-    P = 5
 
 
 CodeBlock = TypeVar('CodeBlock', Tuple[CodeClass, int, CodeType], int)
